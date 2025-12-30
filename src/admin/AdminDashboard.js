@@ -229,3 +229,4 @@ const styles = StyleSheet.create({
   foodActions: { flexDirection: 'row', justifyContent: 'space-between' },
   modal: { backgroundColor: '#fff', padding: 20, borderRadius: 18, margin: 16 }
 });
+// End of AdminDashboard.js
