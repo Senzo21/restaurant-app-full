@@ -1,4 +1,4 @@
-export default {
+﻿const colors = {
   primary: '#0b1e34',
   secondary: '#132f4c',
   white: '#fff',
@@ -6,3 +6,5 @@ export default {
   success: '#4caf50',
   danger: '#f44336',
 };
+
+export default colors;

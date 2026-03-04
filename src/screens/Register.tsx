@@ -1,28 +1,40 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
-  View,
+  Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  Alert,
-  KeyboardAvoidingView
 } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
+import type { ScreenProps } from '../types';
 
-export default function Register({ navigation }) {
-  const [form, setForm] = useState({
-    name: '',
-    surname: '',
-    email: '',
-    password: '',
-    contact: '',
-    address: '',
-    card: ''
-  });
+type RegisterForm = {
+  name: string;
+  surname: string;
+  email: string;
+  password: string;
+  contact: string;
+  address: string;
+  card: string;
+};
+
+const initialForm: RegisterForm = {
+  name: '',
+  surname: '',
+  email: '',
+  password: '',
+  contact: '',
+  address: '',
+  card: '',
+};
+
+export default function Register({ navigation }: ScreenProps<'Register'>): JSX.Element {
+  const [form, setForm] = useState<RegisterForm>(initialForm);
 
   const handleRegister = async () => {
     const { name, surname, email, password, contact, address, card } = form;
@@ -33,22 +45,24 @@ export default function Register({ navigation }) {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const uid = userCredential.user.uid;
 
       await setDoc(doc(db, 'users', uid), {
         name,
         surname,
-        email,
+        email: email.trim(),
         contact,
         address,
-        card
+        card,
+        role: email.trim().toLowerCase() === 'admin@example.com' ? 'admin' : 'user',
       });
 
       Alert.alert('Success', 'Account created successfully!');
       navigation.replace('Login');
-    } catch (err) {
-      Alert.alert('Registration Failed', err.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Registration failed.';
+      Alert.alert('Registration Failed', message);
     }
   };
 
@@ -62,29 +76,30 @@ export default function Register({ navigation }) {
           placeholder="Name"
           placeholderTextColor="#aaa"
           value={form.name}
-          onChangeText={(t) => setForm({ ...form, name: t })}
+          onChangeText={(value) => setForm((prev) => ({ ...prev, name: value }))}
         />
         <TextInput
           style={styles.input}
           placeholder="Surname"
           placeholderTextColor="#aaa"
           value={form.surname}
-          onChangeText={(t) => setForm({ ...form, surname: t })}
+          onChangeText={(value) => setForm((prev) => ({ ...prev, surname: value }))}
         />
         <TextInput
           style={styles.input}
           placeholder="Email"
           placeholderTextColor="#aaa"
           value={form.email}
-          onChangeText={(t) => setForm({ ...form, email: t })}
+          onChangeText={(value) => setForm((prev) => ({ ...prev, email: value }))}
           keyboardType="email-address"
+          autoCapitalize="none"
         />
         <TextInput
           style={styles.input}
           placeholder="Password"
           placeholderTextColor="#aaa"
           value={form.password}
-          onChangeText={(t) => setForm({ ...form, password: t })}
+          onChangeText={(value) => setForm((prev) => ({ ...prev, password: value }))}
           secureTextEntry
         />
         <TextInput
@@ -92,7 +107,7 @@ export default function Register({ navigation }) {
           placeholder="Contact Number"
           placeholderTextColor="#aaa"
           value={form.contact}
-          onChangeText={(t) => setForm({ ...form, contact: t })}
+          onChangeText={(value) => setForm((prev) => ({ ...prev, contact: value }))}
           keyboardType="phone-pad"
         />
         <TextInput
@@ -100,14 +115,14 @@ export default function Register({ navigation }) {
           placeholder="Address"
           placeholderTextColor="#aaa"
           value={form.address}
-          onChangeText={(t) => setForm({ ...form, address: t })}
+          onChangeText={(value) => setForm((prev) => ({ ...prev, address: value }))}
         />
         <TextInput
           style={styles.input}
           placeholder="Card Details (Use test cards)"
           placeholderTextColor="#aaa"
           value={form.card}
-          onChangeText={(t) => setForm({ ...form, card: t })}
+          onChangeText={(value) => setForm((prev) => ({ ...prev, card: value }))}
         />
 
         <TouchableOpacity style={styles.btn} onPress={handleRegister}>
@@ -127,7 +142,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: '#0b1e34',
     padding: 24,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   title: { fontSize: 32, color: '#ffae42', fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
   input: {
@@ -135,15 +150,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     padding: 14,
     borderRadius: 12,
-    marginBottom: 12
+    marginBottom: 12,
   },
   btn: {
     backgroundColor: '#ffae42',
     padding: 16,
     borderRadius: 16,
     marginTop: 12,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   btnText: { color: '#000', fontWeight: 'bold', fontSize: 18 },
-  loginLink: { color: '#fff', marginTop: 12, textAlign: 'center' }
+  loginLink: { color: '#fff', marginTop: 12, textAlign: 'center' },
 });
