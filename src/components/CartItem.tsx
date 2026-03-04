@@ -1,19 +1,29 @@
-import React, { useContext } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+﻿import React, { useContext } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CartContext } from '../context/CartContext';
 import colors from '../styles/colors';
+import type { CartItem as CartItemType } from '../types';
 
-export default function CartItem({ item }) {
-  const { addItem, removeItem } = useContext(CartContext);
+type Props = {
+  item: CartItemType;
+};
+
+export default function CartItem({ item }: Props): JSX.Element {
+  const context = useContext(CartContext);
+
+  if (!context) {
+    return <></>;
+  }
+
+  const { addItem, removeItem } = context;
 
   return (
     <View style={styles.card}>
-      <Image source={item.image} style={styles.image} />
+      <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.price}>R{item.price * item.qty}</Text>
 
-        {/* Quantity buttons */}
         <View style={styles.qtyContainer}>
           <TouchableOpacity style={styles.qtyBtn} onPress={() => removeItem(item.id)}>
             <Text style={styles.qtyBtnText}>-</Text>
@@ -25,7 +35,14 @@ export default function CartItem({ item }) {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.removeBtn} onPress={() => removeItem(item.id)}>
+      <TouchableOpacity
+        style={styles.removeBtn}
+        onPress={() => {
+          for (let i = 0; i < item.qty; i += 1) {
+            removeItem(item.id);
+          }
+        }}
+      >
         <Text style={styles.removeText}>Remove</Text>
       </TouchableOpacity>
     </View>
