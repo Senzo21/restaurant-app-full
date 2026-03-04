@@ -1,19 +1,30 @@
-import React, { useContext } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+﻿import React, { useContext } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CartContext } from '../context/CartContext';
 import colors from '../styles/colors';
+import type { FoodItem } from '../types';
 
-export default function FoodCard({ item }) {
-  const { addItem } = useContext(CartContext);
+type Props = {
+  item: FoodItem;
+};
+
+export default function FoodCard({ item }: Props): JSX.Element {
+  const context = useContext(CartContext);
+
+  if (!context) {
+    return <></>;
+  }
+
+  const { addItem } = context;
 
   return (
     <View style={styles.card}>
-      <Image source={item.image} style={styles.image} />
+      <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.content}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.desc}>{item.desc}</Text>
         <TouchableOpacity style={styles.btn} onPress={() => addItem(item)}>
-          <Text style={styles.btnText}>Add to cart • R{item.price}</Text>
+          <Text style={styles.btnText}>Add to cart - R{item.price}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -24,7 +35,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 16,
-    width: '48%', // ensures 2 per row with spacing
+    width: '48%',
     marginBottom: 16,
     overflow: 'hidden',
     elevation: 3,

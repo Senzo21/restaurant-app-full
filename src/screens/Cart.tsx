@@ -1,22 +1,32 @@
-import React, { useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+﻿import React, { useContext, useMemo } from 'react';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import CartItem from '../components/CartItem';
 import { CartContext } from '../context/CartContext';
 import { auth } from '../firebase/config';
-import CartItem from '../components/CartItem';
 import colors from '../styles/colors';
+import type { CartItem as CartItemType, ScreenProps } from '../types';
 
-export default function Cart({ navigation }) {
-  const { cart, clearCart } = useContext(CartContext);
-  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+export default function Cart({ navigation }: ScreenProps<'Cart'>): JSX.Element {
+  const context = useContext(CartContext);
 
-  // Restrict unregistered users
+  if (!context) {
+    return <></>;
+  }
+
+  const { cart, clearCart } = context;
+
+  const total = useMemo(
+    () => cart.reduce((sum, item) => sum + item.price * item.qty, 0),
+    [cart],
+  );
+
   if (!auth.currentUser) {
     return (
       <View style={styles.empty}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
+          <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
-        <Text style={styles.emptyText}>You must register or login to place orders</Text>
+        <Text style={styles.emptyText}>You must register or login to place orders.</Text>
       </View>
     );
   }
@@ -25,38 +35,38 @@ export default function Cart({ navigation }) {
     return (
       <View style={styles.empty}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
+          <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
-        <Text style={styles.emptyText}>Your cart is empty</Text>
+        <Text style={styles.emptyText}>Your cart is empty.</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>← Back</Text>
+        <Text style={styles.backText}>Back</Text>
       </TouchableOpacity>
 
       <FlatList
         data={cart}
-        keyExtractor={i => i.id}
-        renderItem={({ item }) => <CartItem item={item} />}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }: { item: CartItemType }) => <CartItem item={item} />}
         contentContainerStyle={{ paddingBottom: 140 }}
       />
 
-      {/* Sticky summary */}
       <View style={styles.summary}>
         <Text style={styles.total}>Total: R{total}</Text>
         <View style={styles.btnRow}>
-          <TouchableOpacity
-            style={styles.checkoutBtn}
-            onPress={() => navigation.navigate('Checkout')}
-          >
+          <TouchableOpacity style={styles.checkoutBtn} onPress={() => navigation.navigate('Checkout')}>
             <Text style={styles.btnText}>Checkout</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.clearBtn} onPress={clearCart}>
+          <TouchableOpacity
+            style={styles.clearBtn}
+            onPress={() => {
+              void clearCart();
+            }}
+          >
             <Text style={styles.btnText}>Clear Cart</Text>
           </TouchableOpacity>
         </View>
@@ -69,8 +79,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.primary, padding: 16 },
   backBtn: { marginBottom: 12 },
   backText: { color: colors.white, fontSize: 16, fontWeight: 'bold' },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { color: colors.white, fontSize: 18, fontWeight: 'bold' },
+  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primary },
+  emptyText: { color: colors.white, fontSize: 18, fontWeight: 'bold', textAlign: 'center', paddingHorizontal: 20 },
   summary: {
     position: 'absolute',
     bottom: 0,

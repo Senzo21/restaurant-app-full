@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { onAuthStateChanged } from 'firebase/auth';
 import { StripeProvider } from '@stripe/stripe-react-native';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 
 import { auth } from './src/firebase/config';
 import { CartProvider } from './src/context/CartContext';
+import { ADMIN_EMAILS } from './src/constants/auth';
+import type { RootStackParamList } from './src/types';
 
 import Login from './src/screens/Login';
 import Register from './src/screens/Register';
@@ -16,38 +18,40 @@ import Checkout from './src/screens/Checkout';
 import Receipt from './src/screens/Receipt';
 import AdminDashboard from './src/admin/AdminDashboard';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function App() {
-  const [user, setUser] = useState(null);
+export default function App(): JSX.Element {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+    const unsub = onAuthStateChanged(auth, (nextUser) => {
+      setUser(nextUser);
       setLoading(false);
     });
+
     return unsub;
   }, []);
 
-  if (loading) return null;
+  if (loading) {
+    return <></>;
+  }
+
+  const isAdmin = Boolean(user?.email && ADMIN_EMAILS.includes(user.email));
 
   return (
     <StripeProvider publishableKey="pk_test_51SgubSP8trJ0Z1HMns42npVRZG5l32Et3EOaKoh6qGhneoPyiPnvm34bnxPAYkA1lcEUElx8k5Fe9ow3K6pYRG7m00feIWJ7eB">
       <CartProvider>
         <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {/* Unauthenticated users */}
             {!user ? (
               <>
                 <Stack.Screen name="Login" component={Login} />
                 <Stack.Screen name="Register" component={Register} />
               </>
-            ) : user.email === 'admin@example.com' ? (
-              // Admin user
+            ) : isAdmin ? (
               <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
             ) : (
-              // Normal user
               <>
                 <Stack.Screen name="Home" component={Home} />
                 <Stack.Screen name="ViewItem" component={ViewItem} />

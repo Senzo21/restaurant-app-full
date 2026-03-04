@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  ScrollView
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
 } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase/config';
+import type { ScreenProps } from '../types';
 
-export default function Login({ navigation }) {
+export default function Login({ navigation }: ScreenProps<'Login'>): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -23,9 +23,10 @@ export default function Login({ navigation }) {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      Alert.alert('Login Failed', err.message);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to login.';
+      Alert.alert('Login Failed', message);
     }
   };
 
@@ -41,6 +42,7 @@ export default function Login({ navigation }) {
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
+          autoCapitalize="none"
         />
         <TextInput
           style={styles.input}
@@ -68,7 +70,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: '#0b1e34',
     padding: 24,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   title: { fontSize: 32, color: '#ffae42', fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
   input: {
@@ -76,16 +78,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     padding: 14,
     borderRadius: 12,
-    marginBottom: 12
+    marginBottom: 12,
   },
   btn: {
     backgroundColor: '#ffae42',
     padding: 16,
     borderRadius: 16,
     marginTop: 12,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   btnText: { color: '#000', fontWeight: 'bold', fontSize: 18 },
-  registerLink: { color: '#fff', marginTop: 12, textAlign: 'center' }
+  registerLink: { color: '#fff', marginTop: 12, textAlign: 'center' },
 });
-// End of Login.js
